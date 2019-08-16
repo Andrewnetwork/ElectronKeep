@@ -4,6 +4,7 @@ import { Theme, createStyles, WithStyles, withStyles} from '@material-ui/core/st
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 import './App.css';
 import { InputBase } from '@material-ui/core';
+import Database from 'nedb';
 
 const styles = (theme: Theme) => 
   createStyles({
@@ -17,7 +18,8 @@ const styles = (theme: Theme) =>
       margin:"10px",
       border:"thin solid black",
       padding:"10px",
-      float:"left"
+      float:"left",
+      fontSize:"20px"
     }
   });
 
@@ -29,15 +31,28 @@ interface State{
 }
 
 class App extends Component<Props, State>{
+  db: Database;
   constructor(props:Props){
     super(props);
-    this.state = {notes:["Hello electron world!","Hello Twitch!"],note_input:""};
+    this.state = {notes:[],note_input:""};
+    this.db = new Database({ filename: 'note_file', autoload: true });
+    // Populate the notes from the database. 
+    this.db.find({}, (err:any,docs:any)=>{
+      let notes = docs.map((note:any)=>note.note);
+      this.setState({notes:notes});
+    });
+  }
+  create_note(){
+    if(this.state.note_input.length > 0){
+      this.db.insert({note:this.state.note_input});
+      this.setState({notes:[...this.state.notes,this.state.note_input],note_input:""});
+    }
   }
   render(){
     const { classes } = this.props;
     return (
       <div>
-         <ClickAwayListener onClickAway={()=>this.setState({notes:[...this.state.notes,this.state.note_input],note_input:""})}>
+         <ClickAwayListener onClickAway={()=>this.create_note()}>
           <Paper className={classes.root}>
             <InputBase
               className={classes.noteInput}
