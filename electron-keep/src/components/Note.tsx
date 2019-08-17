@@ -1,5 +1,6 @@
 import React,{ Component } from 'react';
 import { Theme, createStyles, WithStyles, withStyles} from '@material-ui/core/styles';
+import {GridItemPos} from './NoteGrid';
 
 const styles = (theme: Theme) => 
   createStyles({
@@ -34,20 +35,19 @@ const styles = (theme: Theme) =>
       }
   });
 
+export interface NoteState{
+    id:number;
+    isActive:boolean;
+    noteText:string;
+    gridPos:GridItemPos;
+}
 interface Props extends WithStyles<typeof styles>{
     onClick:Function;
     children:string;
     isActive:boolean;
     id:number;
 }
-
-export interface NoteState{
-    id:number;
-    isActive:boolean;
-    noteText:string;
-}
 class Note extends Component<Props, NoteState>{
-    didDrag:boolean = false;
     render(){
         const { classes } = this.props;
         let note_style = classes.note
@@ -63,5 +63,4 @@ class Note extends Component<Props, NoteState>{
         );
     }
 }
-
 export default withStyles(styles)(Note);

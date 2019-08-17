@@ -15,7 +15,7 @@ interface Props{
     onClick:(idx: number) => void;
     onDrag:ItemCallback;
 }
-interface GridItemPos{
+export interface GridItemPos{
     x: number;
     y: number;
     w: number;
@@ -42,16 +42,17 @@ export default class NoteGrid extends React.Component<Props,any>{
       this.setState({ mounted: true });
     }
     generateDOM() {
+        //{{i:"n"+i,x:(i*2)%this.props.cols[this.state.currentBreakpoint],y:Infinity,w:2,h:2}}
         if(this.props.children != null && this.props.children.length > 0){
-            return _.map(this.props.children, (_, i)=>{
-                return (
-                    <div key={i} data-grid={{x: i, y: 4*Math.floor(i/4), w: 3, h:4 }}>
-                        <Note id={1} isActive={false} key={i} onClick={()=>this.props.onClick(i)}>
-                            {this.props.children[i].noteText}
-                        </Note>
-                    </div>
-                );
-            });
+          return _.map(this.props.children, (noteState:NoteState, i)=>{
+            return (
+              <div key={i} data-grid={noteState.gridPos}>
+                <Note id={noteState.id} isActive={false} key={i} onClick={()=>this.props.onClick(i)}>
+                    {noteState.noteText}
+                </Note>
+              </div>
+            )
+          });
         }else{
             return <div>Hi</div>;
         }
@@ -64,7 +65,6 @@ export default class NoteGrid extends React.Component<Props,any>{
     onLayoutChange(layout:any, layouts:any){
       this.props.onLayoutChange(layout, layouts);
     };
-  
     render() {
       return (
         <ResponsiveReactGridLayout
@@ -74,9 +74,11 @@ export default class NoteGrid extends React.Component<Props,any>{
           // I like to have it animate on mount. If you don't, delete `useCSSTransforms` (it's default `true`)
           // and set `measureBeforeMount={true}`.
           useCSSTransforms={this.state.mounted}
-          compactType="horizontal"
+          onBreakpointChange={this.onBreakpointChange.bind(this)}
+          compactType="vertical"
           preventCollision={false}
-          onDrag={this.props.onDrag}>
+          onDrag={this.props.onDrag}
+          onLayoutChange={this.onLayoutChange.bind(this)}>
           {this.generateDOM()}
           
         </ResponsiveReactGridLayout>

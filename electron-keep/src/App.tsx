@@ -51,7 +51,7 @@ class App extends Component<Props, State>{
   constructor(props:Props){
     super(props);
     this.state = {notes:[],note_input:"",active_note_modal:false,active_note_text:""};
-    this.db = new Database({ filename: 'note_file_7', autoload: true });
+    this.db = new Database({ filename: 'note_file_24', autoload: true });
     // Populate the notes from the database. 
     this.db.find({}).sort({id:-1}).exec((err:any,docs:NoteState[])=>{
       this.setState({notes:docs});
@@ -60,7 +60,12 @@ class App extends Component<Props, State>{
   }
   create_note(){
     if(this.state.note_input.length > 0){
-      let newNote = {id:this.note_id_counter,isActive:false,noteText:this.state.note_input};
+      let newNote : NoteState = {
+        id:this.note_id_counter,isActive:false,
+        noteText:this.state.note_input,gridPos:{
+          i:"n"+this.note_id_counter,x:(this.note_id_counter*2)%12,y:2343242342,w:2,h:2
+        }
+      };
       this.db.insert(newNote);
       this.setState({notes:[newNote,...this.state.notes],note_input:""});
       this.note_id_counter++;
@@ -81,7 +86,9 @@ class App extends Component<Props, State>{
     let newNotes = this.state.notes.map((noteState:NoteState)=>{
       if(noteState.isActive){
         // Updating note. 
-        let updatedNote = {id:noteState.id,noteText:this.state.active_note_text,isActive:false};
+        let updatedNote : NoteState = {
+          ...noteState,noteText:this.state.active_note_text,isActive:false,
+        };
         this.db.update({id:noteState.id},updatedNote);
         return updatedNote;
       }else{
@@ -128,13 +135,18 @@ class App extends Component<Props, State>{
       </ClickAwayListener>
     );
   }
+  onLayoutChange(layout:any,layouts:any){
+    let newNotes = this.state.notes.map((ns:NoteState,i:number)=>({...ns,gridPos:layout[i]}));
+    this.setState({notes:newNotes});
+  }
   render(){
     const { classes } = this.props;
     return (
       <div>
         {this.r_create_modal()}
         {this.r_create_input()}
-        <NoteGrid onDrag={()=>this.didDrag = true} onClick={(idx:number)=>this.open_modal(idx)}>
+        <NoteGrid onDrag={()=>this.didDrag = true} 
+          onClick={(idx:number)=>this.open_modal(idx)} onLayoutChange={this.onLayoutChange.bind(this)}>
           {this.state.notes}
         </NoteGrid>
       </div>
