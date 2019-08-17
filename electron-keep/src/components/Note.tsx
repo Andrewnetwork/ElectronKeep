@@ -4,26 +4,33 @@ import { Theme, createStyles, WithStyles, withStyles} from '@material-ui/core/st
 const styles = (theme: Theme) => 
   createStyles({
     note:{
-      margin:"10px",
-      border:"thin solid black",
-      padding:"10px",
-      float:"left",
-      fontSize:"27px",
-      backgroundColor:"#D6EDFF",
-      borderRadius:"3px",
-      boxShadow:"0.5px 0.5px 3px",
-      fontFamily:"Sans-serif",
-      width:"200px"
+        "&:hover":{
+            backgroundColor:"#b8d0e3",
+            cursor:"pointer"
+        },
+        border:"thin solid black",
+        float:"left",
+        fontSize:"20px",
+        backgroundColor:"#D6EDFF",
+        borderRadius:"3px",
+        boxShadow:"0.5px 0.5px 3px",
+        fontFamily:"Sans-serif",
+        width:"100%",
+        height:"100%",
+        userSelect:"none",
     },
     note_active:{
         margin:"10px",
         border:"thin solid black",
         padding:"10px",
         float:"left",
-        fontSize:"27px",
+        fontSize:"20px",
         borderRadius:"3px",
         visibility:"hidden",
         width:"200px"
+      },
+      inner_note:{
+        padding:"10px"
       }
   });
 
@@ -31,6 +38,7 @@ interface Props extends WithStyles<typeof styles>{
     onClick:Function;
     children:string;
     isActive:boolean;
+    id:number;
 }
 
 export interface NoteState{
@@ -39,6 +47,7 @@ export interface NoteState{
     noteText:string;
 }
 class Note extends Component<Props, NoteState>{
+    didDrag:boolean = false;
     render(){
         const { classes } = this.props;
         let note_style = classes.note
@@ -47,7 +56,9 @@ class Note extends Component<Props, NoteState>{
         }
         return(
             <div onClick={()=>this.props.onClick()} className={note_style}>
-                {this.props.children}
+                <div className={classes.inner_note}>
+                    {this.props.children}
+                </div>
             </div>
         );
     }

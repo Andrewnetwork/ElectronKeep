@@ -7,6 +7,8 @@ import { InputBase } from '@material-ui/core';
 import Database from 'nedb';
 import Modal from '@material-ui/core/Modal';
 import Note,{NoteState} from './components/Note';
+import NoteGrid from './components/NoteGrid';
+
 
 const styles = (theme: Theme) => 
   createStyles({
@@ -44,31 +46,36 @@ interface State{
 
 class App extends Component<Props, State>{
   db: Database;
-  note_id_counter:number;
+  note_id_counter:number = 0;
+  didDrag:boolean = false;
   constructor(props:Props){
     super(props);
     this.state = {notes:[],note_input:"",active_note_modal:false,active_note_text:""};
-    this.db = new Database({ filename: 'note_file_2', autoload: true });
-    this.note_id_counter = 0;
+    this.db = new Database({ filename: 'note_file_7', autoload: true });
     // Populate the notes from the database. 
-    this.db.find({}, (err:any,docs:NoteState[])=>{
+    this.db.find({}).sort({id:-1}).exec((err:any,docs:NoteState[])=>{
       this.setState({notes:docs});
+      this.note_id_counter = docs.length;
     });
   }
   create_note(){
     if(this.state.note_input.length > 0){
       let newNote = {id:this.note_id_counter,isActive:false,noteText:this.state.note_input};
       this.db.insert(newNote);
-      this.setState({notes:[...this.state.notes,newNote]});
+      this.setState({notes:[newNote,...this.state.notes],note_input:""});
       this.note_id_counter++;
     }
   }
   open_modal(note_idx:number){
-    let notesCpy = [...this.state.notes];
-    notesCpy[note_idx].isActive = true;
-    this.setState({notes:notesCpy});
-    this.setState({active_note_text:this.state.notes[note_idx].noteText});
-    this.setState({active_note_modal:true});
+    if(!this.didDrag){
+      let notesCpy = [...this.state.notes];
+      notesCpy[note_idx].isActive = true;
+      this.setState({notes:notesCpy});
+      this.setState({active_note_text:this.state.notes[note_idx].noteText});
+      this.setState({active_note_modal:true});
+    }else{
+      this.didDrag = false;
+    }
   }
   close_modal(){
     let newNotes = this.state.notes.map((noteState:NoteState)=>{
@@ -83,11 +90,10 @@ class App extends Component<Props, State>{
     });
     this.setState({active_note_modal:false,notes:newNotes});
   }
-  render(){
+  r_create_modal(){
     const { classes } = this.props;
-    return (
-      <div>
-        <Modal
+    return(
+      <Modal
           open={this.state.active_note_modal}
           onClose={this.close_modal.bind(this)}
           className={classes.modalStyle}
@@ -95,7 +101,7 @@ class App extends Component<Props, State>{
           <div className={classes.modalContainerStyle}>
             <InputBase
                 className={classes.activeNoteInput}
-                placeholder="Naked input"
+                placeholder="Take a note..."
                 inputProps={{ 'aria-label': 'naked' }}
                 multiline
                 value={this.state.active_note_text}
@@ -103,19 +109,34 @@ class App extends Component<Props, State>{
               />
           </div>
          </Modal>
-         <ClickAwayListener onClickAway={()=>this.create_note()}>
-          <Paper className={classes.root}>
-            <InputBase
-              className={classes.noteInput}
-              placeholder="Naked input"
-              inputProps={{ 'aria-label': 'naked' }}
-              multiline
-              value={this.state.note_input}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>)=>this.setState({note_input:event.target.value})}
-            />
-          </Paper>
-        </ClickAwayListener>
-        {this.state.notes.map((noteState:NoteState,idx:number)=><Note isActive={noteState.isActive} onClick={()=>this.open_modal(idx)}>{noteState.noteText}</Note>)}
+    );
+  }
+  r_create_input(){
+    const { classes } = this.props;
+    return(
+      <ClickAwayListener onClickAway={()=>this.create_note()}>
+        <Paper className={classes.root}>
+          <InputBase
+            className={classes.noteInput}
+            placeholder="Take a note..."
+            inputProps={{ 'aria-label': 'naked' }}
+            multiline
+            value={this.state.note_input}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>)=>this.setState({note_input:event.target.value})}
+          />
+        </Paper>
+      </ClickAwayListener>
+    );
+  }
+  render(){
+    const { classes } = this.props;
+    return (
+      <div>
+        {this.r_create_modal()}
+        {this.r_create_input()}
+        <NoteGrid onDrag={()=>this.didDrag = true} onClick={(idx:number)=>this.open_modal(idx)}>
+          {this.state.notes}
+        </NoteGrid>
       </div>
     );
   }
