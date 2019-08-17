@@ -47,7 +47,7 @@ export default class NoteGrid extends React.Component<Props,any>{
           return _.map(this.props.children, (noteState:NoteState, i)=>{
             return (
               <div key={i} data-grid={noteState.gridPos}>
-                <Note id={noteState.id} isActive={false} key={i} onClick={()=>this.props.onClick(i)}>
+                <Note id={noteState.id} isActive={noteState.isActive} key={i} onClick={()=>this.props.onClick(i)}>
                     {noteState.noteText}
                 </Note>
               </div>

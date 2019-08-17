@@ -23,15 +23,24 @@ const styles = (theme: Theme) =>
       top:"50%",
       left:"50%",
       transform: "translate(-50%,-50%)",
-      backgroundColor:"#D6EDFF",
-      padding:"20px",
-      fontSize:"27px",
-      border:"0px"
+      width:"50%",
     },
     modalStyle:{
     },
     activeNoteInput:{
-      fontSize:"27px"
+      fontSize:"27px",
+      width:"100%"
+    },
+    modalButtonContainer:{
+      backgroundColor:"#333333",
+    },
+    modalInputContainer:{
+      backgroundColor:"#D6EDFF",
+      padding:"20px",
+      fontSize:"27px",
+      border:"0px",
+      overflowY:"scroll",
+      maxHeight:"400px",
     }
   });
 
@@ -51,7 +60,7 @@ class App extends Component<Props, State>{
   constructor(props:Props){
     super(props);
     this.state = {notes:[],note_input:"",active_note_modal:false,active_note_text:""};
-    this.db = new Database({ filename: 'note_file_24', autoload: true });
+    this.db = new Database({ filename: 'note_file_26', autoload: true });
     // Populate the notes from the database. 
     this.db.find({}).sort({id:-1}).exec((err:any,docs:NoteState[])=>{
       this.setState({notes:docs});
@@ -97,6 +106,14 @@ class App extends Component<Props, State>{
     });
     this.setState({active_note_modal:false,notes:newNotes});
   }
+  onLayoutChange(layout:any, layouts:any){
+    let newNotes = this.state.notes.map((ns:NoteState,i:number)=>{
+      let newNote = {...ns,gridPos:layout[i]};
+      this.db.update({id:ns.id},newNote);
+      return newNote
+    });
+    this.setState({notes:newNotes});
+  }
   r_create_modal(){
     const { classes } = this.props;
     return(
@@ -106,14 +123,29 @@ class App extends Component<Props, State>{
           className={classes.modalStyle}
           >
           <div className={classes.modalContainerStyle}>
-            <InputBase
-                className={classes.activeNoteInput}
-                placeholder="Take a note..."
-                inputProps={{ 'aria-label': 'naked' }}
-                multiline
-                value={this.state.active_note_text}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>)=>this.setState({active_note_text:event.target.value})}
-              />
+              <div className={classes.modalInputContainer}>
+                <InputBase
+                    className={classes.activeNoteInput}
+                    placeholder="Take a note..."
+                    inputProps={{ 'aria-label': 'naked' }}
+                    multiline
+                    value={this.state.active_note_text}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>)=>this.setState({active_note_text:event.target.value})}
+                  />
+              </div>              
+              <div className={classes.modalButtonContainer}>
+                  <button onClick={()=>{
+                    let updatedNotes:NoteState[] = [];
+                    this.state.notes.forEach((ns:NoteState)=>{
+                      if(!ns.isActive){
+                        updatedNotes.push(ns);
+                      }else{
+                        this.db.remove({id:ns.id});
+                      }
+                    });
+                    this.setState({notes:updatedNotes},()=>this.close_modal());
+                  }}>Delete</button>
+              </div>
           </div>
          </Modal>
     );
@@ -134,10 +166,6 @@ class App extends Component<Props, State>{
         </Paper>
       </ClickAwayListener>
     );
-  }
-  onLayoutChange(layout:any,layouts:any){
-    let newNotes = this.state.notes.map((ns:NoteState,i:number)=>({...ns,gridPos:layout[i]}));
-    this.setState({notes:newNotes});
   }
   render(){
     const { classes } = this.props;
