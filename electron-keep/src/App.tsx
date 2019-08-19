@@ -60,7 +60,7 @@ class App extends Component<Props, State>{
   constructor(props:Props){
     super(props);
     this.state = {notes:[],note_input:"",active_note_modal:false,active_note_text:""};
-    this.db = new Database({ filename: 'note_file_26', autoload: true });
+    this.db = new Database({ filename: 'note_file_36', autoload: true });
     // Populate the notes from the database. 
     this.db.find({}).sort({id:-1}).exec((err:any,docs:NoteState[])=>{
       this.setState({notes:docs});
@@ -72,7 +72,7 @@ class App extends Component<Props, State>{
       let newNote : NoteState = {
         id:this.note_id_counter,isActive:false,
         noteText:this.state.note_input,gridPos:{
-          i:"n"+this.note_id_counter,x:(this.note_id_counter*2)%12,y:2343242342,w:2,h:2
+          i:"n"+this.note_id_counter,x:(this.note_id_counter*2)%4,y:2*(this.note_id_counter/2),w:2,h:2
         }
       };
       this.db.insert(newNote);
@@ -106,7 +106,7 @@ class App extends Component<Props, State>{
     });
     this.setState({active_note_modal:false,notes:newNotes});
   }
-  onLayoutChange(layout:any, layouts:any){
+  onResizeStop(layout:any){
     let newNotes = this.state.notes.map((ns:NoteState,i:number)=>{
       let newNote = {...ns,gridPos:layout[i]};
       this.db.update({id:ns.id},newNote);
@@ -173,8 +173,8 @@ class App extends Component<Props, State>{
       <div>
         {this.r_create_modal()}
         {this.r_create_input()}
-        <NoteGrid onDrag={()=>this.didDrag = true} 
-          onClick={(idx:number)=>this.open_modal(idx)} onLayoutChange={this.onLayoutChange.bind(this)}>
+        <NoteGrid onDrag={()=>this.didDrag = true} onResizeStop={this.onResizeStop.bind(this)}
+          onClick={(idx:number)=>this.open_modal(idx)}>
           {this.state.notes}
         </NoteGrid>
       </div>

@@ -19,20 +19,13 @@ const styles = (theme: Theme) =>
         width:"100%",
         height:"100%",
         userSelect:"none",
+        overflow:"hidden",
+        textOverflow: "ellipsis",
+        whiteSpace:"pre-wrap"
     },
-    note_active:{
-        margin:"10px",
-        border:"thin solid black",
-        padding:"10px",
-        float:"left",
-        fontSize:"20px",
-        borderRadius:"3px",
-        visibility:"hidden",
-        width:"200px"
-      },
-      inner_note:{
+    inner_note:{
         padding:"10px"
-      }
+    }
   });
 
 export interface NoteState{
@@ -50,12 +43,8 @@ interface Props extends WithStyles<typeof styles>{
 class Note extends Component<Props, NoteState>{
     render(){
         const { classes } = this.props;
-        let note_style = classes.note
-        if(this.props.isActive){
-            note_style = classes.note_active;
-        }
         return(
-            <div onClick={()=>this.props.onClick()} className={note_style}>
+            <div key={this.props.id} onClick={()=>this.props.onClick()} className={classes.note}>
                 <div className={classes.inner_note}>
                     {this.props.children}
                 </div>
